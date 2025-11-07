@@ -1,0 +1,339 @@
+﻿@page "/usersPage"
+
+@using BlazorAppU.Models
+@inject BlazorAppU.Services.UserService userService
+@inject IJSRuntime JSRuntime
+
+@rendermode InteractiveServer
+
+<body>
+    <script>
+        console.log("UsersPage component body loaded.");
+        function cargarUsuarios()
+        {
+            console.log("Función X ejecutada.");
+            const selector = document.getElementById("cambioAPISelector");
+            const valor = selector.value;
+            console.log("Valor seleccionado:", valor);
+
+            const tabla = document.getElementById("tbUsuarios");
+            if (!tabla) {
+                console.warn("No se encontró la tabla con id 'tbUsuarios'.");
+                return;
+            }
+
+            const cuerpo = tabla.querySelector("tbody");
+            if (cuerpo) {
+                cuerpo.innerHTML = ""; // Elimina todas las filas
+                console.log("Tabla 'tbUsuarios' limpiada correctamente.");
+            } else {
+                console.warn("La tabla no tiene un <tbody> definido.");
+            }
+
+        }
+
+    </script>
+    <div class="container mt-4">
+
+        <h2>Gestión de Usuarios</h2>
+        <hr />
+
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-4">
+                <label for="apiSelector" class="form-label fw-bold">Seleccionar API:</label>
+                <select id="apiSelector" class="form-select" runat="server" @bind="valorSeleccionado" @bind:after="cargarUsuariosServer">
+                    <option value="true">API A (Principal)</option>
+                    <option value="false">API B (Secundaria)</option>
+                </select>
+            </div>
+            <div class="col-md-8 text-end">
+                <button class="btn btn-success" @onclick="MostrarModalNuevoUsuario">
+                    <i class="bi bi-plus-circle"></i> Nuevo Usuario
+                </button>
+            </div>
+        </div>
+
+        @if (errorConexion)
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Error de Datos:</strong> @mensajeError
+            </div>
+        }
+
+        @if (_isloading)
+        {
+            <div class="text-center p-5">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Cargando usuarios...
+            </div>
+        }
+        else
+        {
+            <div class="card shadow-sm">
+                <div class="card-header bg-light fw-bold">
+                    Lista de Usuarios
+                </div>
+                <div class="card-body p-0">
+                    <table id="tbUsuarios" class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in usuarios)
+                            {
+                                <tr>
+                                    <td>@user.id</td>
+                                    <td>@user.name</td>
+                                    <td>@user.email</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-info me-2">Editar</button>
+                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                    </td>
+                                </tr>
+                            }
+                            @if (usuarios.Count == 0 && !errorConexion)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center">No se encontraron usuarios.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="modal @(mostrarModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Crear / Editar Usuario</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@nuevoUsuario" OnValidSubmit="GuardarUsuario">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.name" />
+                                <ValidationMessage For="@(() => nuevoUsuario.name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.username" />
+                                <ValidationMessage For="@(() => nuevoUsuario.username)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.email" />
+                                <ValidationMessage For="@(() => nuevoUsuario.email)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.phone" />
+                                <ValidationMessage For="@(() => nuevoUsuario.phone)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Sitio Web</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.website" />
+                                <ValidationMessage For="@(() => nuevoUsuario.website)" />
+                            </div>
+
+                            <h5 class="mt-4">Dirección</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">Calle</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.street" />
+                                <ValidationMessage For="@(() => nuevoUsuario.address.street)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Suite</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.suite" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ciudad</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.city" />
+                                <ValidationMessage For="@(() => nuevoUsuario.address.city)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Código Postal</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.zipcode" />
+                                <ValidationMessage For="@(() => nuevoUsuario.address.zipcode)" />
+                            </div>
+
+                            <h5 class="mt-4">Coordenadas</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">Latitud</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lat" />
+                                <ValidationMessage For="@(() => nuevoUsuario.address.geo.lat)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Longitud</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lng" />
+                                <ValidationMessage For="@(() => nuevoUsuario.address.geo.lng)" />
+                            </div>
+
+                            <h5 class="mt-4">Empresa</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.name" />
+                                <ValidationMessage For="@(() => nuevoUsuario.company.name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Frase</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.catchPhrase" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">BS</label>
+                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.bs" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+                        </EditForm>
+
+                    </div>
+                    <div class="modal-footer">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (mostrarModal)
+        {
+            <div class="modal-backdrop fade show"></div>
+        }
+
+    </div>
+    @if (mostrarMensajeExito)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mostrarMensajeExito = false"></button>
+        </div>
+    }
+
+</body>
+
+<script type="module">
+    console.log("UsersPage component loaded.");
+</script>
+
+@code {
+    private List<User> usuarios = new();
+    private bool usarApiPrincipal = true;
+    private bool errorConexion = false;
+    private bool _isloading = false;
+    private string mensajeError = string.Empty;
+
+    private string valorSeleccionado = "true";
+    private bool mostrarModal = false;
+    private User nuevoUsuario = new();
+
+    private bool mostrarMensajeExito = false;
+    private string mensajeExito = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarUsuarios();
+
+    }
+
+    private async Task CargarUsuarios()
+    {
+        _isloading = true;
+        usuarios = await userService.GetUsersAsync(usarApiPrincipal);
+
+        if (!string.IsNullOrEmpty(userService.ErrorMessage))
+        {
+            errorConexion = true;
+            mensajeError = userService.ErrorMessage;
+        }
+        else
+        {
+            errorConexion = false;
+            mensajeError = string.Empty;
+        }
+
+        _isloading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "UsersPage component loaded via IJSRuntime (firstRender).");
+        }
+    }
+
+    private string mensajeDesdeJS = "";
+    [JSInvokable]
+    public void MostrarMensaje(string mensaje)
+    {
+        mensajeDesdeJS = $"Mensaje recibido desde JS: {mensaje}";
+        StateHasChanged();
+    }
+
+    protected async Task cargarUsuariosServer()
+    {
+        if (valorSeleccionado == "true")
+        {
+            usarApiPrincipal = true;
+        }
+        else
+        {
+            usarApiPrincipal = false;
+        }
+        await CargarUsuarios();
+    }
+
+    private void MostrarModalNuevoUsuario()
+    {
+        mostrarModal = true;
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+    }
+    private async Task GuardarUsuario()
+    {
+        var resultado = await userService.CreateUserAsync(nuevoUsuario);
+
+        if (resultado)
+        {
+            mensajeExito = "Usuario creado exitosamente.";
+            mostrarMensajeExito = true;
+
+            // Opcional: cerrar modal, limpiar formulario, recargar usuarios
+            mostrarModal = false;
+            nuevoUsuario = new User();
+            await CargarUsuarios();
+        }
+        else
+        {
+            mensajeExito = $"Error al crear usuario: {userService.ErrorMessage}";
+            mostrarMensajeExito = true;
+        }
+    }
+}
