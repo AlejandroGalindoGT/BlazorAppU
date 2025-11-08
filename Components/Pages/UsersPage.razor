@@ -117,99 +117,148 @@
                         <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                     </div>
                     <div class="modal-body">
-                        <EditForm Model="@nuevoUsuario" OnValidSubmit="GuardarUsuario">
+                        <EditForm Model="@nuevoUsuario"
+                                  OnValidSubmit="GuardarUsuario"
+                                  @ref="EditContextReference">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
 
-                            <div class="mb-3">
-                                <label class="form-label">Nombre</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.name" />
-                                <ValidationMessage For="@(() => nuevoUsuario.name)" />
+                            <div class="mb-4">
+                                <span class="badge @(CurrentStep == 1 ? "bg-primary" : "bg-secondary")">1. Datos Básicos</span>
+                                <span class="badge @(CurrentStep == 2 ? "bg-primary" : "bg-secondary")">2. Direccion</span>
+                                <span class="badge @(CurrentStep == 3 ? "bg-primary" : "bg-secondary")">3. Empresa</span>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Username</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.username" />
-                                <ValidationMessage For="@(() => nuevoUsuario.username)" />
-                            </div>
+                            @* --- PASO 1: DATOS BÁSICOS --- *@
+                            @if (CurrentStep == 1)
+                            {
+                                <h4>Paso 1: Datos Básicos</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.name" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.name)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.email" />
-                                <ValidationMessage For="@(() => nuevoUsuario.email)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.username" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.username)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Teléfono</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.phone" />
-                                <ValidationMessage For="@(() => nuevoUsuario.phone)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.email" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.email)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Sitio Web</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.website" />
-                                <ValidationMessage For="@(() => nuevoUsuario.website)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Teléfono</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.phone" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.phone)" />
+                                </div>
 
-                            <h5 class="mt-4">Dirección</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Sitio Web</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.website" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.website)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Calle</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.street" />
-                                <ValidationMessage For="@(() => nuevoUsuario.address.street)" />
-                            </div>
+                                <button type="button" class="btn btn-primary" @onclick="GoToStep2">Siguiente</button>
+                            }
 
-                            <div class="mb-3">
-                                <label class="form-label">Suite</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.suite" />
-                            </div>
+                            @* --- PASO 2: Dirección DE CONTACTO --- *@
+                            @if (CurrentStep == 2)
+                            {
+                                <h5 class="mt-4">Dirección</h5>
 
-                            <div class="mb-3">
-                                <label class="form-label">Ciudad</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.city" />
-                                <ValidationMessage For="@(() => nuevoUsuario.address.city)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Calle</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.street" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.address.street)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Código Postal</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.zipcode" />
-                                <ValidationMessage For="@(() => nuevoUsuario.address.zipcode)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Suite</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.suite" />
+                                </div>
 
-                            <h5 class="mt-4">Coordenadas</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Ciudad</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.city" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.address.city)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Latitud</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lat" />
-                                <ValidationMessage For="@(() => nuevoUsuario.address.geo.lat)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Código Postal</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.zipcode" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.address.zipcode)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Longitud</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lng" />
-                                <ValidationMessage For="@(() => nuevoUsuario.address.geo.lng)" />
-                            </div>
+                                <h5 class="mt-4">Coordenadas</h5>
 
-                            <h5 class="mt-4">Empresa</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Latitud</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lat" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.address.geo.lat)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Nombre</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.name" />
-                                <ValidationMessage For="@(() => nuevoUsuario.company.name)" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Longitud</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.address.geo.lng" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.address.geo.lng)" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Frase</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.catchPhrase" />
-                            </div>
+                                <button type="button" class="btn btn-secondary me-2" @onclick="() => CurrentStep = 1">Anterior</button>
+                                <button type="button" class="btn btn-primary" @onclick="GoToStep3">Siguiente</button>
+                            }
 
-                            <div class="mb-3">
-                                <label class="form-label">BS</label>
-                                <InputText class="form-control" @bind-Value="nuevoUsuario.company.bs" />
-                            </div>
+                            @* --- PASO 3: Empresa --- *@
+                            @if (CurrentStep == 3)
+                            {
 
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                            <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+                                <h5 class="mt-4">Empresa</h5>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.company.name" />
+                                    <ValidationMessage For="@(() => nuevoUsuario.company.name)" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Frase</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.company.catchPhrase" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">BS</label>
+                                    <InputText class="form-control" @bind-Value="nuevoUsuario.company.bs" />
+                                </div>
+
+                                <button type="button" class="btn btn-secondary me-2" @onclick="() => CurrentStep = 1">Anterior</button>
+                                <button type="button" class="btn btn-primary" @onclick="GoToStep4">Siguiente</button>
+                            }
+
+                            @* --- PASO 4: REVISIÓN Y ENVÍO --- *@
+                            @if (CurrentStep == 4)
+                            {
+                                <h4>Paso 4: Revisión</h4>
+                                <p>Revise la información antes de enviar:</p>
+
+                                <div class="card card-body bg-light mb-3">
+                                    <p><strong>Nombre:</strong> @nuevoUsuario.name</p>
+                                    <p><strong>Email:</strong> @nuevoUsuario.email</p>
+                                    <p><strong>Direccion:</strong> @nuevoUsuario.address</p>
+                                    <p><strong>Teléfono:</strong> @nuevoUsuario.phone</p>
+                                </div>
+
+                                <button type="button" class="btn btn-secondary me-2" @onclick="() => CurrentStep = 2">Anterior</button>
+                                <button type="submit" class="btn btn-success">Guardar Usuario</button>
+                            }
+
+
+@*                             <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button> *@
+
+                            <ValidationSummary class="mt-4" />
                         </EditForm>
 
                     </div>
@@ -252,6 +301,8 @@
 
     private bool mostrarMensajeExito = false;
     private string mensajeExito = string.Empty;
+
+    private int CurrentStep = 1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -325,9 +376,8 @@
             mensajeExito = "Usuario creado exitosamente.";
             mostrarMensajeExito = true;
 
-            // Opcional: cerrar modal, limpiar formulario, recargar usuarios
             mostrarModal = false;
-            nuevoUsuario = new User();
+            //nuevoUsuario = new User();
             await CargarUsuarios();
         }
         else
@@ -335,5 +385,47 @@
             mensajeExito = $"Error al crear usuario: {userService.ErrorMessage}";
             mostrarMensajeExito = true;
         }
+
+        usuarios.Add(nuevoUsuario);
+        StateHasChanged();
+    }
+
+    private EditForm EditContextReference { get; set; }
+
+    // Maneja el botón 'Siguiente' del Paso 1
+    private void GoToStep2()
+    {
+        // Forzar validación solo de los campos visibles (Paso 1)
+        if (EditContextReference.EditContext.Validate()) // [cite: 93]
+        {
+            CurrentStep = 2;
+        }
+    }
+    // Maneja el botón 'Siguiente' del Paso 2
+    private void GoToStep3()
+    {
+        // Forzar validación solo de los campos visibles (Paso 2)
+        if (EditContextReference.EditContext.Validate())
+        {
+            CurrentStep = 3;
+        }
+    }
+    // Maneja el botón 'Siguiente' del Paso 2
+    private void GoToStep4()
+    {
+        // Forzar validación solo de los campos visibles (Paso 3)
+        if (EditContextReference.EditContext.Validate())
+        {
+            CurrentStep = 4;
+        }
+    }
+    // Se ejecuta solo cuando todos los campos del EditForm son válidos
+    private void HandleValidSubmit()
+    {
+        // Lógica de envío final (llamada a la API, etc.)
+        Console.WriteLine($"Usuario {nuevoUsuario.name} enviado correctamente.");
+        // Redirigir al usuario o mostrar mensaje de éxito
+        usuarios.Add(nuevoUsuario);
+        StateHasChanged();
     }
 }
