@@ -101,6 +101,61 @@ namespace BlazorAppU.Services
             return false;
         }
 
+        // var resultado = await userService.EditUserAsync(usuario);
+        public async Task<bool> EditUserAsync(User editarUsuario, bool isAPIA = true)
+        {
+            _APIURL = "https://webapplicationapiu20251107000045-aacchubmbza8gfby.mexicocentral-01.azurewebsites.net/api/Registros";
+            try
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization = GetBasicAuthHeader();
+                    var response = await _httpClient.PutAsJsonAsync(_APIURL + $"/{editarUsuario.id}", editarUsuario);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        ErrorMessage = string.Empty;
+                        return true;
+                    }
+                    else
+                    {
+                        ErrorMessage = $"Error HTTP {(int)response.StatusCode}: No se pudo editar el usuario.";
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    ErrorMessage = "Error de red: No se pudo conectar con el servidor API.";
+                }
+                catch (Exception)
+                {
+                    ErrorMessage = "Ocurrió un error inesperado al editar el usuario.";
+                }
+            return false;
+        }
 
+        public async Task<bool> DeleteUserAsync(User eliminarUsuario, bool isAPIA = true)
+        {
+            _APIURL = "https://webapplicationapiu20251107000045-aacchubmbza8gfby.mexicocentral-01.azurewebsites.net/api/Registros";
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = GetBasicAuthHeader();
+                var response = await _httpClient.DeleteAsync(_APIURL + $"/{eliminarUsuario.id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    ErrorMessage = string.Empty;
+                    return true;
+                }
+                else
+                {
+                    ErrorMessage = $"Error HTTP {(int)response.StatusCode}: No se pudo eliminar el usuario.";
+                }            
+            }
+            catch (HttpRequestException)
+            {
+                ErrorMessage = "Error de red: No se pudo conectar con el servidor API.";
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "Ocurrió un error inesperado al eliminar el usuario.";
+            }
+            return false;
+        }
     }
 }

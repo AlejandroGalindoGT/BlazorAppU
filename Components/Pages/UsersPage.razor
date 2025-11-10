@@ -7,32 +7,7 @@
 @rendermode InteractiveServer
 
 <body>
-    <script>
-        console.log("UsersPage component body loaded.");
-        function cargarUsuarios()
-        {
-            console.log("Función X ejecutada.");
-            const selector = document.getElementById("cambioAPISelector");
-            const valor = selector.value;
-            console.log("Valor seleccionado:", valor);
 
-            const tabla = document.getElementById("tbUsuarios");
-            if (!tabla) {
-                console.warn("No se encontró la tabla con id 'tbUsuarios'.");
-                return;
-            }
-
-            const cuerpo = tabla.querySelector("tbody");
-            if (cuerpo) {
-                cuerpo.innerHTML = ""; // Elimina todas las filas
-                console.log("Tabla 'tbUsuarios' limpiada correctamente.");
-            } else {
-                console.warn("La tabla no tiene un <tbody> definido.");
-            }
-
-        }
-
-    </script>
     <div class="container mt-4">
 
         <h2>Gestión de Usuarios</h2>
@@ -41,7 +16,8 @@
         <div class="row mb-3 align-items-center">
             <div class="col-md-4">
                 <label for="apiSelector" class="form-label fw-bold">Seleccionar API:</label>
-                <select id="apiSelector" class="form-select" runat="server" @bind="valorSeleccionado" @bind:after="cargarUsuariosServer">
+                <select id="apiSelector" class="form-select" runat="server"
+                        @bind="valorSeleccionado" @bind:after="cargarUsuariosServer">
                     <option value="true">API A (Principal)</option>
                     <option value="false">API B (Secundaria)</option>
                 </select>
@@ -92,8 +68,8 @@
                                     <td>@user.name</td>
                                     <td>@user.email</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-info me-2">Editar</button>
-                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                        <button class="btn btn-sm btn-info me-2" @onclick="() => EditarUsuario(user)">Editar</button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => EliminarUsuario(user)">Eliminar</button>
                                     </td>
                                 </tr>
                             }
@@ -113,7 +89,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Crear / Editar Usuario</h5>
+                        <h5 class="modal-title">Crear/Editar Usuario</h5>
                         <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                     </div>
                     <div class="modal-body">
@@ -251,12 +227,13 @@
                                 </div>
 
                                 <button type="button" class="btn btn-secondary me-2" @onclick="() => CurrentStep = 2">Anterior</button>
-                                <button type="submit" class="btn btn-success">Guardar Usuario</button>
+                                <button type="submit" class="btn btn-success"
+                                        style="@(EsModoEdicion ? "display: none;" : "display: block;")">Guardar Usuario</button>
+                                <button id="btnEditarUsuario" type="button" class="btn btn-success"
+                                        style="@(EsModoEdicion ? "display: block;" : "display: none;")"
+                                        @onclick="() => EnviarEditarUsuario(nuevoUsuario)">Editar Usuario</button>
+  
                             }
-
-
-@*                             <button type="submit" class="btn btn-primary">Guardar</button>
-                            <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button> *@
 
                             <ValidationSummary class="mt-4" />
                         </EditForm>
@@ -274,11 +251,11 @@
         }
 
     </div>
-    @if (mostrarMensajeExito)
+    @if (mostrarMensajeOperacion)
     {
         <div class="alert alert-info alert-dismissible fade show" role="alert">
             @mensajeExito
-            <button type="button" class="btn-close" @onclick="() => mostrarMensajeExito = false"></button>
+            <button type="button" class="btn-close" @onclick="() => mostrarMensajeOperacion = false"></button>
         </div>
     }
 
@@ -299,15 +276,16 @@
     private bool mostrarModal = false;
     private User nuevoUsuario = new();
 
-    private bool mostrarMensajeExito = false;
+    private bool mostrarMensajeOperacion = false;
     private string mensajeExito = string.Empty;
 
+    private bool EsModoEdicion = false;
     private int CurrentStep = 1;
 
     protected override async Task OnInitializedAsync()
     {
+        mostrarMensajeOperacion = false;
         await CargarUsuarios();
-
     }
 
     private async Task CargarUsuarios()
@@ -361,20 +339,25 @@
     private void MostrarModalNuevoUsuario()
     {
         mostrarModal = true;
+        EsModoEdicion = false;
+        CurrentStep = 1;
+        nuevoUsuario = new();
     }
 
     private void CerrarModal()
     {
         mostrarModal = false;
     }
+
     private async Task GuardarUsuario()
     {
+        // Usuario nuevo
         var resultado = await userService.CreateUserAsync(nuevoUsuario);
 
         if (resultado)
         {
             mensajeExito = "Usuario creado exitosamente.";
-            mostrarMensajeExito = true;
+            mostrarMensajeOperacion = true;
 
             mostrarModal = false;
             //nuevoUsuario = new User();
@@ -383,7 +366,7 @@
         else
         {
             mensajeExito = $"Error al crear usuario: {userService.ErrorMessage}";
-            mostrarMensajeExito = true;
+            mostrarMensajeOperacion = true;
         }
 
         usuarios.Add(nuevoUsuario);
@@ -395,8 +378,7 @@
     // Maneja el botón 'Siguiente' del Paso 1
     private void GoToStep2()
     {
-        // Forzar validación solo de los campos visibles (Paso 1)
-        if (EditContextReference.EditContext.Validate()) // [cite: 93]
+        if (EditContextReference.EditContext.Validate())
         {
             CurrentStep = 2;
         }
@@ -404,7 +386,6 @@
     // Maneja el botón 'Siguiente' del Paso 2
     private void GoToStep3()
     {
-        // Forzar validación solo de los campos visibles (Paso 2)
         if (EditContextReference.EditContext.Validate())
         {
             CurrentStep = 3;
@@ -413,7 +394,6 @@
     // Maneja el botón 'Siguiente' del Paso 2
     private void GoToStep4()
     {
-        // Forzar validación solo de los campos visibles (Paso 3)
         if (EditContextReference.EditContext.Validate())
         {
             CurrentStep = 4;
@@ -422,10 +402,73 @@
     // Se ejecuta solo cuando todos los campos del EditForm son válidos
     private void HandleValidSubmit()
     {
-        // Lógica de envío final (llamada a la API, etc.)
         Console.WriteLine($"Usuario {nuevoUsuario.name} enviado correctamente.");
-        // Redirigir al usuario o mostrar mensaje de éxito
         usuarios.Add(nuevoUsuario);
         StateHasChanged();
     }
+
+    private async void EditarUsuario(User usuario)
+    {
+        nuevoUsuario = usuario;
+        mostrarModal = true;
+        //MostrarModalNuevoUsuario();
+        EsModoEdicion = true;
+        CurrentStep = 1;
+    }
+
+    private async void EnviarEditarUsuario(User usuario)
+    {
+        if (usuario == null)
+        {
+            mensajeExito = "Error al editar usuario: User usuario es null.";
+        }
+        else
+        {            
+            // Editar usuario
+            var resultado = await userService.EditUserAsync(usuario);
+            if (resultado)
+            {
+                mensajeExito = "Usuario editato exitosamente.";
+                mostrarMensajeOperacion = true;
+                mostrarModal = false;
+                await CargarUsuarios();
+            }
+            else
+            {
+                mensajeExito = $"Error al editar usuario: {userService.ErrorMessage}";
+                mostrarMensajeOperacion = true;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task EliminarUsuario(User usuario)
+    {
+        if (usuario == null)
+        {
+            mensajeExito = "Error al eliminar usuario: User usuario es null.";
+        }
+        else
+        {
+            // Eliminar usuario
+            var resultado = await userService.DeleteUserAsync(usuario);
+            if (resultado)
+            {
+                mensajeExito = "Usuario eliminado exitosamente.";
+                mostrarMensajeOperacion = true;
+                mostrarModal = false;
+                usuarios.Remove(usuario);
+                //await CargarUsuarios();
+            }
+            else
+            {
+                mensajeExito = $"Error al eliminar usuario: {userService.ErrorMessage}";
+                mostrarMensajeOperacion = true;
+            }
+
+            StateHasChanged();
+        }
+    }
+
 }
