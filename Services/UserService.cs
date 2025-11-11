@@ -5,6 +5,7 @@ namespace BlazorAppU.Services
 {
     public class UserService
     {
+        private string _URL = "";
         private const string _USERNAME = "admin";
         private const string _PASSWORD = "password123";
         private AuthenticationHeaderValue GetBasicAuthHeader()
@@ -19,10 +20,13 @@ namespace BlazorAppU.Services
         private string _APIURL = "https://webapplicationapiu20251107000045-aacchubmbza8gfby.mexicocentral-01.azurewebsites.net/api/Registros?usarAPIA=true";
         // Propiedad para almacenar el mensaje de error para la UI
         public string ErrorMessage { get; private set; }
+        //private string _URL = "https://webapplicationapiu20251107000045-aacchubmbza8gfby.mexicocentral-01.azurewebsites.net/api/Registros";
+        public string URLMensaje { get; set; } = string.Empty;
 
         public UserService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _URL = "https://webapplicationapiu20251107000045-aacchubmbza8gfby.mexicocentral-01.azurewebsites.net/api/Registros";
         }
 
         public async Task<List<User>> GetUsersAsync(bool isApiA = true)

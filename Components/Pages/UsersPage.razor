@@ -262,7 +262,7 @@
 </body>
 
 <script type="module">
-    console.log("UsersPage component loaded.");
+    //console.log("UsersPage component loaded.");
 </script>
 
 @code {
@@ -291,6 +291,7 @@
     private async Task CargarUsuarios()
     {
         _isloading = true;
+        userService.URLMensaje = "";
         usuarios = await userService.GetUsersAsync(usarApiPrincipal);
 
         if (!string.IsNullOrEmpty(userService.ErrorMessage))
